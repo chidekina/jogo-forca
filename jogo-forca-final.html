@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Forca - Cobrança!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Outfit', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(72, 187, 120, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(246, 173, 85, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: dropIn 0.8s ease-out;
+        }
+
+        .title h1 {
+            font-family: 'Bangers', cursive;
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            color: #f6ad55;
+            text-shadow: 
+                3px 3px 0 #c05621,
+                6px 6px 0 rgba(0,0,0,0.3);
+            letter-spacing: 3px;
+            transform: rotate(-2deg);
+        }
+
+        .title p {
+            color: #a0aec0;
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+
+        /* ========== TELA DE SETUP ========== */
+        .setup-screen {
+            background: linear-gradient(145deg, #2d3748 0%, #1a202c 100%);
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .setup-screen h2 {
+            font-family: 'Bangers', cursive;
+            font-size: 2rem;
+            color: #f6ad55;
+            margin-bottom: 10px;
+        }
+
+        .setup-screen p {
+            color: #a0aec0;
+            margin-bottom: 30px;
+        }
+
+        .photo-upload-area {
+            border: 3px dashed #4a5568;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .photo-upload-area:hover {
+            border-color: #f6ad55;
+            background: rgba(246, 173, 85, 0.05);
+        }
+
+        .photo-upload-area.has-photo {
+            border-style: solid;
+            border-color: #48bb78;
+            background: rgba(72, 187, 120, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .photo-upload-area p {
+            margin-bottom: 0;
+        }
+
+        .photo-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #48bb78;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        #photoInput {
+            display: none;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            color: #a0aec0;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #4a5568;
+            border-radius: 12px;
+            background: #1a202c;
+            color: #e2e8f0;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #f6ad55;
+        }
+
+        .input-group textarea {
+            resize: none;
+            height: 80px;
+        }
+
+        .input-group small {
+            color: #718096;
+            font-size: 0.8rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(180deg, #f6ad55 0%, #dd6b20 100%);
+            color: #1a202c;
+            border: none;
+            padding: 18px 50px;
+            border-radius: 50px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(246, 173, 85, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ========== TELA DO JOGO ========== */
+        .game-screen {
+            display: none;
+        }
+
+        .game-screen.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .setup-screen.hidden {
+            display: none;
+        }
+
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 700px) {
+            .game-area {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .gallows-container {
+            background: linear-gradient(145deg, #2d3748 0%, #1a202c 100%);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .gallows {
+            width: 200px;
+            height: 250px;
+        }
+
+        .gallows line, .gallows circle {
+            stroke: #e2e8f0;
+            stroke-width: 4;
+            stroke-linecap: round;
+            fill: none;
+            transition: all 0.5s ease;
+        }
+
+        .gallows .part {
+            opacity: 0;
+            transform-origin: center;
+            transition: all 0.5s ease;
+        }
+
+        .gallows .part.visible {
+            opacity: 1;
+        }
+
+        .head-photo-group {
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+
+        .head-photo-group.visible {
+            opacity: 1;
+        }
+
+        .head-photo-group.scare {
+            animation: scareAppear 0.8s ease-out forwards;
+        }
+
+        @keyframes scareAppear {
+            0% { opacity: 0; transform: scale(0) rotate(-180deg); }
+            40% { opacity: 1; transform: scale(1.4) rotate(10deg); }
+            60% { transform: scale(1.2) rotate(-5deg); }
+            80% { transform: scale(1.05) rotate(2deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+
+        .head-border {
+            fill: none;
+            stroke: #e2e8f0;
+            stroke-width: 3;
+            transition: all 0.3s ease;
+        }
+
+        .head-photo-group.scare .head-border {
+            stroke: #fc8181;
+            filter: drop-shadow(0 0 8px rgba(252, 129, 129, 0.6));
+        }
+
+        .info-panel {
+            background: linear-gradient(145deg, #2d3748 0%, #1a202c 100%);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 25px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'Bangers', cursive;
+            font-size: 2.5rem;
+            color: #48bb78;
+            line-height: 1;
+        }
+
+        .stat-value.danger {
+            color: #fc8181;
+            animation: pulse 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .stat-label {
+            color: #a0aec0;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .word-display {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .letter-slot {
+            width: 40px;
+            height: 50px;
+            background: linear-gradient(180deg, #4a5568 0%, #2d3748 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Bangers', cursive;
+            font-size: 1.8rem;
+            color: #f6ad55;
+            box-shadow: 
+                0 4px 6px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .letter-slot.revealed {
+            animation: revealLetter 0.4s ease-out;
+            background: linear-gradient(180deg, #48bb78 0%, #2f855a 100%);
+            color: #fff;
+        }
+
+        .letter-slot.space {
+            background: transparent;
+            box-shadow: none;
+            width: 25px;
+        }
+
+        @keyframes revealLetter {
+            0% { transform: rotateX(90deg); }
+            100% { transform: rotateX(0deg); }
+        }
+
+        .keyboard {
+            margin-top: 30px;
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .key {
+            width: 45px;
+            height: 50px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(180deg, #4a5568 0%, #2d3748 100%);
+            color: #e2e8f0;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 
+                0 4px 6px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        .key:hover:not(:disabled) {
+            transform: translateY(-3px);
+            background: linear-gradient(180deg, #5a6578 0%, #3d4758 100%);
+        }
+
+        .key:disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+
+        .key.correct {
+            background: linear-gradient(180deg, #48bb78 0%, #2f855a 100%);
+            color: #fff;
+        }
+
+        .key.wrong {
+            background: linear-gradient(180deg, #fc8181 0%, #c53030 100%);
+            color: #fff;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal {
+            background: linear-gradient(145deg, #2d3748 0%, #1a202c 100%);
+            border-radius: 25px;
+            padding: 40px;
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            box-shadow: 
+                0 25px 100px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+            animation: modalPop 0.5s ease;
+        }
+
+        @keyframes modalPop {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .modal h2 {
+            font-family: 'Bangers', cursive;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        .modal.win h2 { color: #48bb78; }
+        .modal.lose h2 { color: #fc8181; }
+
+        .modal p {
+            color: #a0aec0;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .modal .answer {
+            font-family: 'Bangers', cursive;
+            font-size: 1.8rem;
+            color: #f6ad55;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+        }
+
+        .modal .emoji {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            animation: bounce 1s ease infinite;
+            display: none;
+        }
+
+        .modal .result-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+            animation: bounce 1s ease infinite;
+        }
+
+        .modal.win .result-photo {
+            border: 4px solid #48bb78;
+            box-shadow: 0 0 20px rgba(72, 187, 120, 0.5);
+        }
+
+        .modal.lose .result-photo {
+            border: 4px solid #fc8181;
+            box-shadow: 0 0 20px rgba(252, 129, 129, 0.5);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .btn-restart {
+            background: linear-gradient(180deg, #f6ad55 0%, #dd6b20 100%);
+            color: #1a202c;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-restart:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(246, 173, 85, 0.4);
+        }
+
+        .btn-restart-game {
+            background: linear-gradient(180deg, #4a5568 0%, #2d3748 100%);
+            color: #e2e8f0;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-restart-game:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(180deg, #5a6578 0%, #3d4758 100%);
+        }
+
+        .wrong-letters {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .wrong-letters h3 {
+            color: #fc8181;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .wrong-list {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .wrong-letter {
+            width: 35px;
+            height: 35px;
+            background: rgba(252, 129, 129, 0.2);
+            border: 2px solid #fc8181;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #fc8181;
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes dropIn {
+            0% { opacity: 0; transform: translateY(-50px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .hint-box {
+            background: linear-gradient(90deg, rgba(246, 173, 85, 0.1) 0%, rgba(246, 173, 85, 0.05) 100%);
+            border-left: 4px solid #f6ad55;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .hint-box p {
+            color: #f6ad55;
+            font-size: 0.95rem;
+        }
+
+        .hint-box strong {
+            display: block;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+        }
+
+        /* Botões de compartilhamento */
+        .share-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-share {
+            background: linear-gradient(180deg, #25D366 0%, #128C7E 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-share:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+        }
+
+        .btn-share.download {
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-share.download:hover {
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-share.copy {
+            background: linear-gradient(180deg, #4a5568 0%, #2d3748 100%);
+        }
+
+        .success-message {
+            color: #48bb78;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .success-message.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">
+            <h1>🎯 Jogo da Forca 🎯</h1>
+            <p>Cobre seu amigo de um jeito divertido!</p>
+        </div>
+
+        <!-- TELA DE SETUP -->
+        <div class="setup-screen" id="setupScreen">
+            <h2>📸 Configure o Jogo</h2>
+            <p>Selecione a foto do caloteiro e personalize a mensagem!</p>
+
+            <div class="photo-upload-area" id="photoUploadArea" onclick="document.getElementById('photoInput').click()">
+                <div id="uploadPlaceholder">
+                    <div class="upload-icon">📷</div>
+                    <p>Clique para selecionar a foto do caloteiro</p>
+                </div>
+                <img id="photoPreview" class="photo-preview" style="display: none;">
+            </div>
+            <input type="file" id="photoInput" accept="image/*" onchange="handlePhotoSelect(event)">
+
+            <div class="input-group">
+                <label>💬 Mensagem Secreta</label>
+                <input type="text" id="secretPhrase" value="ME PAGA CALOTEIRO" maxlength="30" oninput="this.value = this.value.toUpperCase()">
+                <small>Máximo 30 caracteres (apenas letras e espaços)</small>
+            </div>
+
+            <div class="input-group">
+                <label>💡 Dica para o jogador</label>
+                <input type="text" id="hintText" value="Uma mensagem que todo devedor conhece bem..." maxlength="60">
+            </div>
+
+            <button class="btn-primary" id="createGameBtn" onclick="createGame()" disabled>
+                🎮 Criar Jogo
+            </button>
+
+            <div class="share-buttons" id="shareButtons" style="display: none;">
+                <button class="btn-share" onclick="shareWhatsApp()">
+                    📱 Enviar WhatsApp
+                </button>
+                <button class="btn-share download" onclick="downloadGame()">
+                    ⬇️ Baixar Jogo
+                </button>
+                <button class="btn-share copy" onclick="copyLink()">
+                    📋 Copiar Link
+                </button>
+            </div>
+            <p class="success-message" id="successMessage">✅ Link copiado!</p>
+        </div>
+
+        <!-- TELA DO JOGO -->
+        <div class="game-screen" id="gameScreen">
+            <div class="hint-box">
+                <p><strong>💡 Dica:</strong> <span id="hintDisplay"></span></p>
+            </div>
+
+            <div class="game-area">
+                <div class="gallows-container">
+                    <svg class="gallows" viewBox="0 0 200 250">
+                        <defs>
+                            <clipPath id="headClip">
+                                <circle cx="140" cy="70" r="20"/>
+                            </clipPath>
+                        </defs>
+                        
+                        <line x1="20" y1="230" x2="100" y2="230" stroke="#718096" stroke-width="6"/>
+                        <line x1="60" y1="230" x2="60" y2="20" stroke="#718096" stroke-width="6"/>
+                        <line x1="55" y1="20" x2="140" y2="20" stroke="#718096" stroke-width="6"/>
+                        <line x1="140" y1="20" x2="140" y2="50" stroke="#718096" stroke-width="4"/>
+                        
+                        <g class="head-photo-group" id="head">
+                            <image id="svgHeadPhoto" x="120" y="50" width="40" height="40" clip-path="url(#headClip)" preserveAspectRatio="xMidYMid slice"/>
+                            <circle class="head-border" cx="140" cy="70" r="20"/>
+                        </g>
+                        
+                        <line class="part" id="body" x1="140" y1="90" x2="140" y2="150"/>
+                        <line class="part" id="arm-left" x1="140" y1="110" x2="110" y2="130"/>
+                        <line class="part" id="arm-right" x1="140" y1="110" x2="170" y2="130"/>
+                        <line class="part" id="leg-left" x1="140" y1="150" x2="110" y2="190"/>
+                        <line class="part" id="leg-right" x1="140" y1="150" x2="170" y2="190"/>
+                    </svg>
+                </div>
+
+                <div class="info-panel">
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="stat-value" id="remaining">6</div>
+                            <div class="stat-label">Tentativas</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="found">0</div>
+                            <div class="stat-label">Letras Certas</div>
+                        </div>
+                    </div>
+
+                    <div class="word-display" id="wordDisplay"></div>
+
+                    <div class="wrong-letters" id="wrongLettersSection" style="display: none;">
+                        <h3>Letras erradas:</h3>
+                        <div class="wrong-list" id="wrongList"></div>
+                    </div>
+
+                    <button class="btn-restart-game" onclick="restartGame()">
+                        🔄 Tentar Outra Vez
+                    </button>
+                </div>
+            </div>
+
+            <div class="keyboard" id="keyboard"></div>
+        </div>
+    </div>
+
+    <!-- Modal de fim de jogo -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modal">
+            <img class="result-photo" id="resultPhoto">
+            <h2 id="modalTitle">Parabéns!</h2>
+            <p id="modalMessage">Você descobriu a mensagem!</p>
+            <div class="answer" id="modalAnswer"></div>
+            <button class="btn-restart" onclick="restartGame()">Jogar Novamente</button>
+        </div>
+    </div>
+
+    <script>
+        // Configurações do jogo
+        let CONFIG = {
+            photo: null,
+            phrase: "ME PAGA CALOTEIRO",
+            hint: "Uma mensagem que todo devedor conhece bem..."
+        };
+
+        // Estado do jogo
+        let guessedLetters = new Set();
+        let wrongLetters = [];
+        let correctLetters = new Set();
+        let errors = 0;
+        let gameOver = false;
+        const MAX_ERRORS = 6;
+        const bodyParts = ['leg-right', 'leg-left', 'arm-right', 'arm-left', 'body', 'head'];
+
+        // Verificar se há configuração na URL
+        function checkURLConfig() {
+            const params = new URLSearchParams(window.location.search);
+            const data = params.get('data');
+            
+            if (data) {
+                try {
+                    const decoded = JSON.parse(atob(data));
+                    CONFIG.photo = decoded.p;
+                    CONFIG.phrase = decoded.f;
+                    CONFIG.hint = decoded.h;
+                    startGameDirectly();
+                } catch (e) {
+                    console.log('Configuração inválida na URL');
+                }
+            }
+        }
+
+        // Iniciar jogo diretamente (quando vem por link)
+        function startGameDirectly() {
+            document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.add('active');
+            document.getElementById('hintDisplay').textContent = CONFIG.hint;
+            document.getElementById('svgHeadPhoto').setAttribute('href', CONFIG.photo);
+            initGame();
+        }
+
+        // Manipular seleção de foto
+        function handlePhotoSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    CONFIG.photo = e.target.result;
+                    
+                    const preview = document.getElementById('photoPreview');
+                    const placeholder = document.getElementById('uploadPlaceholder');
+                    const uploadArea = document.getElementById('photoUploadArea');
+                    
+                    preview.src = CONFIG.photo;
+                    preview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                    uploadArea.classList.add('has-photo');
+                    
+                    document.getElementById('createGameBtn').disabled = false;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Criar o jogo
+        function createGame() {
+            CONFIG.phrase = document.getElementById('secretPhrase').value.toUpperCase().replace(/[^A-Z ]/g, '');
+            CONFIG.hint = document.getElementById('hintText').value;
+            
+            if (!CONFIG.photo || !CONFIG.phrase) {
+                alert('Por favor, selecione uma foto e digite uma mensagem!');
+                return;
+            }
+
+            document.getElementById('shareButtons').style.display = 'flex';
+            document.getElementById('createGameBtn').textContent = '✅ Jogo Criado!';
+            
+            // Também inicia o jogo para preview
+            document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.add('active');
+            document.getElementById('hintDisplay').textContent = CONFIG.hint;
+            document.getElementById('svgHeadPhoto').setAttribute('href', CONFIG.photo);
+            initGame();
+        }
+
+        // Gerar link do jogo
+        function generateGameLink() {
+            const data = {
+                p: CONFIG.photo,
+                f: CONFIG.phrase,
+                h: CONFIG.hint
+            };
+            const encoded = btoa(JSON.stringify(data));
+            return window.location.origin + window.location.pathname + '?data=' + encoded;
+        }
+
+        // Compartilhar no WhatsApp
+        function shareWhatsApp() {
+            const link = generateGameLink();
+            const text = `🎯 Ei, resolvi te cobrar de um jeito diferente! 😈\n\nJogue aqui: ${link}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        // Baixar o jogo como HTML
+        function downloadGame() {
+            // Gera um HTML completo com os dados embutidos
+            const htmlContent = generateStandaloneHTML();
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'jogo-da-forca-cobranca.html';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Copiar link
+        function copyLink() {
+            const link = generateGameLink();
+            navigator.clipboard.writeText(link).then(() => {
+                const msg = document.getElementById('successMessage');
+                msg.classList.add('show');
+                setTimeout(() => msg.classList.remove('show'), 2000);
+            });
+        }
+
+        // Gerar HTML standalone
+        function generateStandaloneHTML() {
+            const currentHTML = document.documentElement.outerHTML;
+            // Injeta a configuração diretamente no HTML
+            const script = `<script>
+                window.EMBEDDED_CONFIG = {
+                    photo: "${CONFIG.photo.replace(/"/g, '\\"')}",
+                    phrase: "${CONFIG.phrase}",
+                    hint: "${CONFIG.hint}"
+                };
+            <\/script>`;
+            return currentHTML.replace('</head>', script + '</head>');
+        }
+
+        // Inicializar jogo
+        function initGame() {
+            createWordDisplay();
+            createKeyboard();
+            updateStats();
+        }
+
+        function createWordDisplay() {
+            const display = document.getElementById('wordDisplay');
+            display.innerHTML = '';
+            
+            for (let char of CONFIG.phrase) {
+                const slot = document.createElement('div');
+                slot.className = 'letter-slot' + (char === ' ' ? ' space' : '');
+                slot.dataset.letter = char;
+                slot.textContent = char === ' ' ? '' : '';
+                display.appendChild(slot);
+            }
+        }
+
+        function createKeyboard() {
+            const keyboard = document.getElementById('keyboard');
+            const rows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+            keyboard.innerHTML = '';
+            
+            rows.forEach(row => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'keyboard-row';
+                
+                for (let letter of row) {
+                    const key = document.createElement('button');
+                    key.className = 'key';
+                    key.textContent = letter;
+                    key.dataset.letter = letter;
+                    key.onclick = () => handleGuess(letter);
+                    rowDiv.appendChild(key);
+                }
+                keyboard.appendChild(rowDiv);
+            });
+        }
+
+        function handleGuess(letter) {
+            if (gameOver || guessedLetters.has(letter)) return;
+            
+            // Verificar se o jogo está ativo
+            const gameScreen = document.getElementById('gameScreen');
+            if (!gameScreen.classList.contains('active')) return;
+            
+            guessedLetters.add(letter);
+            const key = document.querySelector(`.key[data-letter="${letter}"]`);
+            if (!key) return; // Proteção extra
+            
+            const normalizedPhrase = CONFIG.phrase.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+            
+            if (normalizedPhrase.includes(letter)) {
+                key.classList.add('correct');
+                key.disabled = true;
+                revealLetters(letter);
+                correctLetters.add(letter);
+                
+                if (checkWin()) {
+                    gameOver = true;
+                    setTimeout(() => showModal(true), 500);
+                }
+            } else {
+                key.classList.add('wrong');
+                key.disabled = true;
+                errors++;
+                wrongLetters.push(letter);
+                showBodyPart();
+                updateWrongLetters();
+                
+                if (errors >= MAX_ERRORS) {
+                    gameOver = true;
+                    revealAllLetters();
+                    setTimeout(() => showModal(false), 800);
+                }
+            }
+            updateStats();
+        }
+
+        function revealLetters(letter) {
+            const slots = document.querySelectorAll('.letter-slot');
+            slots.forEach((slot, index) => {
+                const normalizedChar = CONFIG.phrase[index].normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+                if (normalizedChar === letter) {
+                    setTimeout(() => {
+                        slot.textContent = CONFIG.phrase[index];
+                        slot.classList.add('revealed');
+                    }, Math.random() * 200);
+                }
+            });
+        }
+
+        function revealAllLetters() {
+            const slots = document.querySelectorAll('.letter-slot');
+            slots.forEach((slot, index) => {
+                if (CONFIG.phrase[index] !== ' ' && !slot.textContent) {
+                    slot.textContent = CONFIG.phrase[index];
+                    slot.style.background = 'linear-gradient(180deg, #fc8181 0%, #c53030 100%)';
+                    slot.style.color = '#fff';
+                }
+            });
+        }
+
+        function showBodyPart() {
+            if (errors <= bodyParts.length) {
+                const partId = bodyParts[errors - 1];
+                const part = document.getElementById(partId);
+                
+                if (partId === 'head') {
+                    part.classList.add('visible', 'scare');
+                } else {
+                    part.classList.add('visible');
+                }
+            }
+        }
+
+        function updateWrongLetters() {
+            const section = document.getElementById('wrongLettersSection');
+            const list = document.getElementById('wrongList');
+            section.style.display = 'block';
+            
+            const letterDiv = document.createElement('div');
+            letterDiv.className = 'wrong-letter';
+            letterDiv.textContent = wrongLetters[wrongLetters.length - 1];
+            list.appendChild(letterDiv);
+        }
+
+        function updateStats() {
+            document.getElementById('remaining').textContent = MAX_ERRORS - errors;
+            document.getElementById('remaining').classList.toggle('danger', errors >= 4);
+            document.getElementById('found').textContent = correctLetters.size;
+        }
+
+        function checkWin() {
+            const normalizedPhrase = CONFIG.phrase.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+            const uniqueLetters = new Set(normalizedPhrase.replace(/ /g, ''));
+            
+            for (let letter of uniqueLetters) {
+                if (!guessedLetters.has(letter)) return false;
+            }
+            return true;
+        }
+
+        function showModal(won) {
+            const overlay = document.getElementById('modalOverlay');
+            const modal = document.getElementById('modal');
+            const resultPhoto = document.getElementById('resultPhoto');
+            const title = document.getElementById('modalTitle');
+            const message = document.getElementById('modalMessage');
+            const answer = document.getElementById('modalAnswer');
+            
+            // Sempre mostra a foto
+            resultPhoto.src = CONFIG.photo;
+            
+            if (won) {
+                modal.className = 'modal win';
+                title.textContent = 'Parabéns!';
+                message.textContent = 'Você descobriu a mensagem! Agora vai pagar? 😏';
+            } else {
+                modal.className = 'modal lose';
+                title.textContent = 'Você Perdeu!';
+                message.textContent = 'Não escapou dessa! A mensagem era:';
+            }
+            
+            answer.textContent = CONFIG.phrase;
+            overlay.classList.add('active');
+        }
+
+        function restartGame() {
+            guessedLetters = new Set();
+            wrongLetters = [];
+            correctLetters = new Set();
+            errors = 0;
+            gameOver = false;
+            
+            bodyParts.forEach(partId => {
+                const part = document.getElementById(partId);
+                if (partId === 'head') {
+                    part.classList.remove('visible', 'scare');
+                } else {
+                    part.classList.remove('visible');
+                }
+            });
+            
+            document.getElementById('wrongLettersSection').style.display = 'none';
+            document.getElementById('wrongList').innerHTML = '';
+            document.getElementById('modalOverlay').classList.remove('active');
+            
+            createWordDisplay();
+            createKeyboard();
+            updateStats();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            const letter = e.key.toUpperCase();
+            if (/^[A-Z]$/.test(letter)) {
+                handleGuess(letter);
+            }
+        });
+
+        // Verificar configuração embutida ou URL ao carregar
+        window.onload = function() {
+            if (window.EMBEDDED_CONFIG) {
+                CONFIG = window.EMBEDDED_CONFIG;
+                startGameDirectly();
+            } else {
+                checkURLConfig();
+            }
+        };
+    </script>
+</body>
+</html>
